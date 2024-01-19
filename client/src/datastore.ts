@@ -1,15 +1,15 @@
 import * as Cookies from 'js-cookie';
 import * as topojson from 'topojson-client';
 import * as _ from 'underscore';
-import {getPromise, ajaxPromise} from './utils';
+import { getPromise, ajaxPromise } from './utils';
 import Cache from './cache';
 
-import {transformGeometryLatLngToGoogle, CenterZoomLevel, LatLng} from './coordinates';
+import { transformGeometryLatLngToGoogle, CenterZoomLevel, LatLng } from './coordinates';
 
 import Action, * as actions from './action';
 import * as ramps from './ramps';
 import Stories from './stories';
-import {withoutDefaults} from './utils';
+import { withoutDefaults } from './utils';
 import { FeatureCollection, StyleFn } from './overlaymap';
 
 /** This is the state exported by this store via store.getState(). */
@@ -129,12 +129,12 @@ export const DEFAULT_OPTIONS: QueryOptions = {
 // The keys and values match the k/v types for their respective caches, except for
 // commuteTimesCache. It uses a more compact representation. See dumpCache() for details.
 interface SavedCache {
-  addressCache: {[key: string]: string};
-  routesCache: {[key: string]: Route};
-  commuteTimesCache: {[key: string]: number[]};
+  addressCache: { [key: string]: string };
+  routesCache: { [key: string]: Route };
+  commuteTimesCache: { [key: string]: number[] };
 }
 
-interface CommuteTimes {[bgId: string]: number}
+interface CommuteTimes { [bgId: string]: number }
 
 interface CommuteTimesKey {
   origin: LatLng;
@@ -142,10 +142,10 @@ interface CommuteTimesKey {
 }
 
 function fetchCommuteTimes(key: CommuteTimesKey) {
-  const {origin, options} = key;
-  const {lat, lng} = origin;
+  const { origin, options } = key;
+  const { lat, lng } = origin;
   return getPromise<CommuteTimes>('one-to-nyc', {
-    origin: {lat, lng},
+    origin: { lat, lng },
     departureTime: options.departure_time,
     options,
   });
@@ -159,9 +159,9 @@ interface RoutesKey {
 
 async function fetchRoute(key: RoutesKey): Promise<Route> {
   const params = {
-    origin: {lat: key.origin.lat, lng: key.origin.lng},
+    origin: { lat: key.origin.lat, lng: key.origin.lng },
     departureTime: key.options.departure_time,
-    destination: {lat: key.destination.lat, lng: key.destination.lng},
+    destination: { lat: key.destination.lat, lng: key.destination.lng },
     options: key.options,
   };
   const route = await getPromise<Route>('route', params);
@@ -178,7 +178,7 @@ async function fetchRoute(key: RoutesKey): Promise<Route> {
 }
 
 function formatAddress(result: google.maps.GeocoderResult) {
-  const componentByType = {} as {[type: string]: string};
+  const componentByType = {} as { [type: string]: string };
   for (const component of result.address_components) {
     for (const type of component.types) {
       componentByType[type] = component.short_name;
@@ -201,7 +201,7 @@ function formatAddress(result: google.maps.GeocoderResult) {
 
 async function reverseGeocode(geocoder: google.maps.Geocoder, location: LatLng): Promise<string> {
   return new Promise<string>((resolve, reject) => {
-    geocoder.geocode({location}, (results, status: any) => {
+    geocoder.geocode({ location }, (results, status: any) => {
       if (status !== 'OK') {
         // The typings say this is a number, but it's a string.
         resolve('Unknown location');
@@ -223,9 +223,9 @@ function createStore() {
   let error: string = null;
   let style: StyleFn = () => ({});
   let origin: LatLng = new LatLng(INTRO_STORY.origin.lat, INTRO_STORY.origin.lng);
-  let options = {...DEFAULT_OPTIONS, ...INTRO_STORY.options};
+  let options = { ...DEFAULT_OPTIONS, ...INTRO_STORY.options };
   let origin2: LatLng = new LatLng(40.687772, -73.978498); // point in Ft. Greene
-  let options2 = {...DEFAULT_OPTIONS, ...INTRO_STORY.options2};
+  let options2 = { ...DEFAULT_OPTIONS, ...INTRO_STORY.options2 };
   let mode: actions.Mode = INTRO_STORY.mode;
   const geocoder = new google.maps.Geocoder();
   // Default to the "intro" scenario unless the user has previously closed the scenarios bar.
@@ -299,10 +299,10 @@ function createStore() {
 
   function fetchRoutes() {
     if (destination) {
-      routesCache.get({origin, options, destination}).then(stateChanged, stateChanged);
+      routesCache.get({ origin, options, destination }).then(stateChanged, stateChanged);
       const secondaryParams = getSecondaryParams();
       if (secondaryParams) {
-        routesCache.get({...secondaryParams, destination}).then(stateChanged, stateChanged);
+        routesCache.get({ ...secondaryParams, destination }).then(stateChanged, stateChanged);
       }
     }
   }
@@ -321,7 +321,7 @@ function createStore() {
 
   function updateBounds(action: actions.UpdateBounds) {
     const bounds = action.bounds;
-    passiveViewport = {center: bounds.center, zoomLevel: bounds.zoomLevel};
+    passiveViewport = { center: bounds.center, zoomLevel: bounds.zoomLevel };
 
     // There's no need to go through a full state update when the viewport changes, and doing so is
     // a significant performance hit. Just updating the hash makes panning much smoother.
@@ -366,17 +366,17 @@ function createStore() {
       });
     } else {
       if (obj.center) {
-        const {lat, lng} = obj.center;
+        const { lat, lng } = obj.center;
         view = {
           center: new LatLng(lat, lng),
           zoomLevel: obj.zoomLevel || INITIAL_VIEW.zoomLevel,
         };
         stateChanged();
       }
-      handleAction({type: 'set-mode', mode: obj.mode || 'single'});
+      handleAction({ type: 'set-mode', mode: obj.mode || 'single' });
 
       if (obj.origin) {
-        if (obj.options) options = {...DEFAULT_OPTIONS, ...obj.options};
+        if (obj.options) options = { ...DEFAULT_OPTIONS, ...obj.options };
         handleAction({
           type: 'set-origin',
           origin: new LatLng(obj.origin.lat, obj.origin.lng),
@@ -393,7 +393,7 @@ function createStore() {
         handleAction({
           type: 'set-options',
           isSecondary: true,
-          options: {...DEFAULT_OPTIONS, ...obj.options2},
+          options: { ...DEFAULT_OPTIONS, ...obj.options2 },
         });
       }
       if (obj.dest) {
@@ -402,7 +402,7 @@ function createStore() {
           ...obj.dest,
         });
       } else {
-        handleAction({type: 'clear-destination'});
+        handleAction({ type: 'clear-destination' });
       }
     }
     gaEnabled = true;
@@ -413,14 +413,14 @@ function createStore() {
       case 'single':
         return null;
       case 'compare-origin':
-        return {origin: origin2, options};
+        return { origin: origin2, options };
       case 'compare-settings':
-        return {origin, options: options2};
+        return { origin, options: options2 };
     }
   }
 
   function getStyleFn() {
-    const times = commuteTimesCache.getFromCache({origin, options}) || {};
+    const times = commuteTimesCache.getFromCache({ origin, options }) || {};
     if (mode === 'single') {
       return (feature: any) => {
         const id = feature.properties['geo_id'];
@@ -454,7 +454,7 @@ function createStore() {
       ? commuteTimesCache.get(secondaryParams)
       : Promise.resolve(null);
 
-    const promises = [commuteTimesCache.get({origin, options})];
+    const promises = [commuteTimesCache.get({ origin, options })];
     if (secondaryPromise) {
       promises.push(secondaryPromise);
     }
@@ -478,7 +478,7 @@ function createStore() {
     }
     // If you switch from single to compare-settings, start with identical settings.
     if (mode === 'compare-settings') {
-      options2 = {...options};
+      options2 = { ...options };
     }
 
     const secondaryParams = getSecondaryParams();
@@ -554,12 +554,12 @@ function createStore() {
     if (!destination) return [];
     const routes = [] as Route[];
 
-    const route1 = routesCache.getFromCache({origin, options, destination});
+    const route1 = routesCache.getFromCache({ origin, options, destination });
     routes.push(route1);
 
     const secondaryParams = getSecondaryParams();
     if (secondaryParams) {
-      const route2 = routesCache.getFromCache({...secondaryParams, destination});
+      const route2 = routesCache.getFromCache({ ...secondaryParams, destination });
       routes.push(route2);
     }
     return routes;
@@ -571,34 +571,34 @@ function createStore() {
 
   // This dumps the contents of all the caches into a copy/paste-friendly textarea.
   // Navigate through the scenarios, then run dumpCache() in the console.
-  if (!process.env || process.env.NODE_ENV !== 'production') {
-    const dumpCache = () => {
-      const ids = orderedFeatureIds();
-      // The address and routes caches are reasonably small.
-      // The commute times are not, but they can be greatly shrunk by dropping the keys and
-      // rounding the commute times. It's important to round them _up_, so that the
-      // max_commute_time_secs option for route generation is still valid.
-      function simplifyCommuteTimes(v: CommuteTimes): number[] {
-        return ids.map(id => (v[id] === null ? null : Math.ceil(v[id])));
-      }
+  // if (process && !process.env || process.env.NODE_ENV !== 'production') {
+  const dumpCache = () => {
+    const ids = orderedFeatureIds();
+    // The address and routes caches are reasonably small.
+    // The commute times are not, but they can be greatly shrunk by dropping the keys and
+    // rounding the commute times. It's important to round them _up_, so that the
+    // max_commute_time_secs option for route generation is still valid.
+    function simplifyCommuteTimes(v: CommuteTimes): number[] {
+      return ids.map(id => (v[id] === null ? null : Math.ceil(v[id])));
+    }
 
-      const out: SavedCache = {
-        addressCache: addressCache.dump(),
-        routesCache: routesCache.dump(),
-        commuteTimesCache: _.mapObject(commuteTimesCache.dump(), simplifyCommuteTimes),
-      };
-
-      const el = document.createElement('textarea');
-      el.style.position = 'absolute';
-      el.style.top = '0';
-      el.style.left = '0';
-      el.rows = 40;
-      el.cols = 80;
-      el.textContent = JSON.stringify(out);
-      document.body.appendChild(el);
+    const out: SavedCache = {
+      addressCache: addressCache.dump(),
+      routesCache: routesCache.dump(),
+      commuteTimesCache: _.mapObject(commuteTimesCache.dump(), simplifyCommuteTimes),
     };
-    (window as any)['dumpCache'] = dumpCache;
-  }
+
+    const el = document.createElement('textarea');
+    el.style.position = 'absolute';
+    el.style.top = '0';
+    el.style.left = '0';
+    el.rows = 40;
+    el.cols = 80;
+    el.textContent = JSON.stringify(out);
+    document.body.appendChild(el);
+  };
+  (window as any)['dumpCache'] = dumpCache;
+  // }
 
   function restoreCaches(cacheJson: SavedCache) {
     const ids = orderedFeatureIds();
@@ -636,11 +636,11 @@ function createStore() {
   }
 
   function constructHash() {
-    const obj: UrlParams = {origin, options: withoutDefaults(options, DEFAULT_OPTIONS)};
+    const obj: UrlParams = { origin, options: withoutDefaults(options, DEFAULT_OPTIONS) };
     if (passiveViewport) {
-      const {lat, lng} = passiveViewport.center;
+      const { lat, lng } = passiveViewport.center;
       _.extend(obj, {
-        center: {lat, lng},
+        center: { lat, lng },
         zoomLevel: passiveViewport.zoomLevel,
       });
     }

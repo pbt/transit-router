@@ -1,13 +1,13 @@
-import * as turfBboxPolygon from '@turf/bbox-polygon';
-import {point} from '@turf/helpers';
-import * as turfInside from '@turf/inside';
-import * as rbush from 'rbush';
-import * as turfOverlaps from 'turf-overlaps';
+import turfBboxPolygon from '@turf/bbox-polygon';
+import { point } from '@turf/helpers';
+import turfInside from '@turf/inside';
+import rbush from 'rbush';
+import turfOverlaps from 'turf-overlaps';
 import * as _ from 'underscore';
 
-import {BoundingBox, GeoJSONPoint, GooglePoint} from '../coordinates';
+import { BoundingBox, GeoJSONPoint, GooglePoint } from '../coordinates';
 import { reversed } from '../utils';
-import {Feature, FeatureCollection} from './index';
+import { Feature, FeatureCollection } from './index';
 
 // The maximum height/width of buffer we will allocate, in pixels.
 // A hard limit here is that mobile Safari won't allocate a buffer larger than
@@ -30,7 +30,7 @@ export interface DrawingStyle {
   pointOutlineColor?: string;
   pointOutlineWidth?: number; // default is 1px
   pointRadius?: number;
-  text?: {color: string; font: string; text: string; textBaseline: string; textAlign: string};
+  text?: { color: string; font: string; text: string; textBaseline: string; textAlign: string };
   image?: string;
   imageDimensions?: [number, number]; // Width, height.
 }
@@ -70,7 +70,7 @@ interface IndexedRect extends rbush.BBox {
 interface Layer {
   data: StyledFeatureData;
 
-  idIndex: {[id: string]: Feature};
+  idIndex: { [id: string]: Feature };
   geoIndex: rbush.RBush<IndexedRect>;
 }
 
@@ -215,7 +215,7 @@ export class CanvasOverlay extends google.maps.OverlayView {
   public hitTest(latLng: google.maps.LatLng): [number, Feature] {
     const map = this.getMap() as google.maps.Map;
     const projection = map.getProjection();
-    const {x, y} = projection.fromLatLngToPoint(latLng);
+    const { x, y } = projection.fromLatLngToPoint(latLng);
     const padding = 5 * Math.pow(2, -this.zoom);
 
     const box = new BoundingBox(GooglePoint, x - padding, y - padding, x + padding, y + padding);
@@ -233,7 +233,7 @@ export class CanvasOverlay extends google.maps.OverlayView {
       );
 
       const feature = _.find(features, f => {
-        const {geometry} = f;
+        const { geometry } = f;
         if (geometry.type === 'Point') {
           return true;
         } else if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
@@ -305,7 +305,7 @@ export class CanvasOverlay extends google.maps.OverlayView {
     const drawPathSegment = (coords: GeoJSONPoint[]) => {
       let first = true;
       for (const coord of coords) {
-        const {x, y} = GooglePoint.fromGeoJSON(coord).toPixel(scale, topLeft);
+        const { x, y } = GooglePoint.fromGeoJSON(coord).toPixel(scale, topLeft);
         if (first) {
           ctx.moveTo(x, y);
           first = false;
@@ -336,7 +336,7 @@ export class CanvasOverlay extends google.maps.OverlayView {
             continue;
           }
 
-          const {x, y} = googlePoint.toPixel(scale, topLeft);
+          const { x, y } = googlePoint.toPixel(scale, topLeft);
           if (style.image) {
             const drawing = new Image();
             drawing.src = style.image;
